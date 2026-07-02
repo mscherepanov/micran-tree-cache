@@ -1,12 +1,10 @@
 #include <QtTest/QtTest>
 
-class SmokeTest : public QObject
-{
+class SmokeTest : public QObject {
     Q_OBJECT
 
 private slots:
-    void testEnvironment()
-    {
+    void testEnvironment() {
         QVERIFY(true);
         QCOMPARE(1 + 1, 2);
     }

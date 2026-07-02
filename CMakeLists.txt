@@ -6,10 +6,6 @@ project(micran-tree-cache
     LANGUAGES CXX
 )
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,8 +16,13 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Тип сборки" FORCE)
 endif()
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+find_package(QT NAMES Qt6 Qt5 5.15 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} 5.15 REQUIRED COMPONENTS Widgets)
 
 add_library(project_warnings INTERFACE)
 target_compile_options(project_warnings INTERFACE
@@ -32,67 +33,52 @@ target_compile_options(project_warnings INTERFACE
     -Wconversion
 )
 
-set(PROJECT_SOURCES
-        src/main.cpp
-        src/mainwindow.cpp
-        src/mainwindow.h
-        src/mainwindow.ui
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+include(ClangTools)
+
+add_library(domain STATIC
+    src/domain/TreeNode.cpp
+    src/domain/TreeNode.h
+    src/domain/NodeId.h
+    src/domain/NodeStatus.h
+    src/domain/DatabaseTypes.h
+    src/domain/IDatabaseRepository.h
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(micran-tree-cache
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET micran-tree-cache APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
+target_include_directories(domain PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(domain PRIVATE
+    project_warnings
+)
+
+set(PROJECT_SOURCES
+    src/main.cpp
+    src/presentation/mainwindow.cpp
+    src/presentation/mainwindow.h
+    src/presentation/mainwindow.ui
+)
+
+if(QT_VERSION_MAJOR GREATER_EQUAL 6)
+    qt_add_executable(micran-tree-cache ${PROJECT_SOURCES})
 else()
-    if(ANDROID)
-        add_library(micran-tree-cache SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(micran-tree-cache
-            ${PROJECT_SOURCES}
-        )
-    endif()
+    add_executable(micran-tree-cache ${PROJECT_SOURCES})
 endif()
 
-target_include_directories(micran-tree-cache PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(micran-tree-cache PRIVATE Qt${QT_VERSION_MAJOR}::Widgets project_warnings)
+target_include_directories(micran-tree-cache PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
-option(BUILD_TESTING "Собрать юнит-тесты" ON)
+target_link_libraries(micran-tree-cache PRIVATE
+    domain
+    Qt${QT_VERSION_MAJOR}::Widgets
+    project_warnings
+)
 
-if (BUILD_TESTING)
+option(BUILD_TESTING "Собирать юнит-тесты" ON)
+
+if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
-endif()
-
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
-if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.micran-tree-cache)
-endif()
-set_target_properties(micran-tree-cache PROPERTIES
-    ${BUNDLE_ID_OPTION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
-    MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
-)
-
-include(GNUInstallDirs)
-install(TARGETS micran-tree-cache
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(micran-tree-cache)
 endif()
