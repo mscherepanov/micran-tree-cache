@@ -83,6 +83,25 @@ target_link_libraries(application
     PRIVATE project_warnings
 )
 
+add_library(presentation STATIC
+    src/presentation/TreeModel.cpp
+    src/presentation/TreeModel.h
+    src/presentation/CacheTreeProvider.cpp
+    src/presentation/CacheTreeProvider.h
+    src/presentation/NodeItemDelegate.cpp
+    src/presentation/NodeItemDelegate.h
+    src/presentation/ITreeDataProvider.h
+)
+
+target_include_directories(presentation PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(presentation
+    PUBLIC domain application Qt${QT_VERSION_MAJOR}::Widgets
+    PRIVATE project_warnings
+)
+
 set(PROJECT_SOURCES
     src/main.cpp
     src/presentation/mainwindow.cpp
