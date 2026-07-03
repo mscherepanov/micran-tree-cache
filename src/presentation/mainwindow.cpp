@@ -7,11 +7,13 @@
 #include "presentation/NodeItemDelegate.h"
 #include "presentation/TreeModel.h"
 
+#include <QAction>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QLabel>
+#include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
@@ -65,17 +67,33 @@ void MainWindow::buildUi() {
     auto cacheProvider = std::make_unique<CacheTreeProvider>(cache_);
     cacheModel_ = new TreeModel(std::move(cacheProvider), this);
 
+    cacheModel_->setEditCallback([this](domain::NodeId id, std::string value) {
+        const auto result = cache_.editPayload(id, std::move(value));
+        const bool ok = result == CacheService::OperationResult::Success;
+        if (ok) {
+            showStatus(tr("Элемент изменён"));
+        } else {
+            showStatus(describeResult(result));
+        }
+        return ok;
+    });
+
     databaseView_ = new QTreeView(this);
     databaseView_->setModel(databaseModel_);
     databaseView_->setItemDelegate(new NodeItemDelegate(databaseView_));
     databaseView_->setHeaderHidden(false);
     databaseView_->header()->setSectionResizeMode(QHeaderView::Stretch);
+    databaseView_->setContextMenuPolicy(Qt::CustomContextMenu);
+    databaseView_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     cacheView_ = new QTreeView(this);
     cacheView_->setModel(cacheModel_);
     cacheView_->setItemDelegate(new NodeItemDelegate(cacheView_));
     cacheView_->setHeaderHidden(false);
     cacheView_->header()->setSectionResizeMode(QHeaderView::Stretch);
+    cacheView_->setContextMenuPolicy(Qt::CustomContextMenu);
+    cacheView_->setEditTriggers(QAbstractItemView::DoubleClicked |
+                                QAbstractItemView::EditKeyPressed);
 
     loadButton_ = new QPushButton(tr("Загрузить в кэш"), this);
 
@@ -134,6 +152,11 @@ void MainWindow::connectActions() {
             [this] { updateActionStates(); });
     connect(cacheView_->selectionModel(), &QItemSelectionModel::selectionChanged, this,
             [this] { updateActionStates(); });
+
+    connect(databaseView_, &QWidget::customContextMenuRequested, this,
+            &MainWindow::onDatabaseContextMenu);
+    connect(cacheView_, &QWidget::customContextMenuRequested, this,
+            &MainWindow::onCacheContextMenu);
 }
 
 std::optional<NodeId> MainWindow::selectedId(const QTreeView* view) const {
@@ -153,6 +176,7 @@ void MainWindow::onLoadToCache() {
     }
 
     const auto result = cache_.loadFromDatabase(*id);
+
     cacheModel_->refreshAll();
     cacheView_->expandAll();
     updateActionStates();
@@ -213,7 +237,17 @@ void MainWindow::onRemove() {
         return;
     }
 
+    const QString name = cacheView_->currentIndex().data(Qt::DisplayRole).toString();
+    const auto answer = QMessageBox::question(
+        this, tr("Удаление элемента"),
+        tr("Удалить элемент «%1» вместе со всеми дочерними элементами?").arg(name),
+        QMessageBox::Yes | QMessageBox::No);
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
     const auto result = cache_.remove(*id);
+
     cacheModel_->refreshAll();
     cacheView_->expandAll();
     updateActionStates();
@@ -221,7 +255,7 @@ void MainWindow::onRemove() {
 }
 
 void MainWindow::onApplyToDatabase() {
-    showStatus(tr("Синхронизация"));
+    showStatus(tr("Синхронизация будет доступна на следующем этапе"));
 }
 
 void MainWindow::onReset() {
@@ -237,6 +271,40 @@ void MainWindow::onReset() {
     refreshViews();
     updateActionStates();
     showStatus(tr("Приложение сброшено в исходное состояние"));
+}
+
+void MainWindow::onDatabaseContextMenu(const QPoint& pos) {
+    const QModelIndex index = databaseView_->indexAt(pos);
+    if (!index.isValid()) {
+        return;
+    }
+    databaseView_->setCurrentIndex(index);
+
+    QMenu menu{this};
+    menu.addAction(tr("Загрузить в кэш"), this, &MainWindow::onLoadToCache);
+    menu.exec(databaseView_->viewport()->mapToGlobal(pos));
+}
+
+void MainWindow::onCacheContextMenu(const QPoint& pos) {
+    const QModelIndex index = cacheView_->indexAt(pos);
+    if (!index.isValid()) {
+        return;
+    }
+    cacheView_->setCurrentIndex(index);
+
+    const auto status = static_cast<domain::NodeStatus>(index.data(TreeModel::StatusRole).toInt());
+    const bool deleted = status == domain::NodeStatus::Deleted;
+
+    QMenu menu{this};
+    QAction* add = menu.addAction(tr("Добавить дочерний"), this, &MainWindow::onAddChild);
+    QAction* edit = menu.addAction(tr("Изменить"), this, &MainWindow::onEditPayload);
+    menu.addSeparator();
+    menu.addAction(tr("Удалить"), this, &MainWindow::onRemove);
+
+    add->setEnabled(!deleted);
+    edit->setEnabled(!deleted);
+
+    menu.exec(cacheView_->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::updateActionStates() {

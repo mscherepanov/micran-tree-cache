@@ -7,7 +7,9 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
+#include <functional>
 #include <memory>
+#include <string>
 
 namespace micran_tree_cache::presentation {
 class TreeModel final : public QAbstractItemModel {
@@ -20,6 +22,8 @@ public:
         NodeIdRole
     };
 
+    using EditCallback = std::function<bool(domain::NodeId, std::string)>;
+
     explicit TreeModel(std::unique_ptr<ITreeDataProvider> provider, QObject* parent = nullptr);
     ~TreeModel() override;
 
@@ -28,7 +32,12 @@ public:
     [[nodiscard]] int rowCount(const QModelIndex& parent) const override;
     [[nodiscard]] int columnCount(const QModelIndex& parent) const override;
     [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
-    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation,
+                                      int role) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex& index) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+
+    void setEditCallback(EditCallback callback);
 
     void refreshAll();
     void notifyNodeChanged(domain::NodeId id);
@@ -41,6 +50,7 @@ private:
     [[nodiscard]] QModelIndex searchIndex(domain::NodeId id, const QModelIndex& parent) const;
 
     std::unique_ptr<ITreeDataProvider> provider_;
+    EditCallback editCallback_;
 };
 
 } // namespace micran_tree_cache::presentation
