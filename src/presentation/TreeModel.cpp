@@ -1,6 +1,7 @@
 #include "presentation/TreeModel.h"
 
 #include <QObject>
+#include <utility>
 
 namespace micran_tree_cache::presentation {
 
@@ -79,6 +80,44 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation, int rol
         return QObject::tr("Элемент");
     }
     return {};
+}
+
+Qt::ItemFlags TreeModel::flags(const QModelIndex& index) const {
+    Qt::ItemFlags base = QAbstractItemModel::flags(index);
+    if (!index.isValid()) {
+        return base;
+    }
+
+    if (editCallback_) {
+        const auto status = static_cast<domain::NodeStatus>(index.data(StatusRole).toInt());
+        if (status != domain::NodeStatus::Deleted) {
+            base |= Qt::ItemIsEditable;
+        }
+    }
+    return base;
+}
+
+bool TreeModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+    if (!index.isValid() || role != Qt::EditRole || !editCallback_) {
+        return false;
+    }
+
+    ITreeDataProvider::NodeHandle handle = handleForIndex(index);
+    if (handle == nullptr) {
+        return false;
+    }
+
+    const domain::NodeId nodeId = provider_->id(handle);
+    if (!editCallback_(nodeId, value.toString().toStdString())) {
+        return false;
+    }
+
+    emit dataChanged(index, index);
+    return true;
+}
+
+void TreeModel::setEditCallback(EditCallback callback) {
+    editCallback_ = std::move(callback);
 }
 
 void TreeModel::refreshAll() {

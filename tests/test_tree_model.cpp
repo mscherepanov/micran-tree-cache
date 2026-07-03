@@ -39,6 +39,10 @@ private slots:
     void statusRoleReflectsNodeStatus();
     void indexForIdFindsNode();
     void childRowsAppearAfterLoad();
+    void notEditableWithoutCallback();
+    void editableWithCallback();
+    void deletedNodeNotEditable();
+    void setDataInvokesCallback();
 };
 
 void TreeModelTest::init() {
@@ -55,7 +59,8 @@ void TreeModelTest::modelPassesQtInvariants() {
     auto model = makeModel();
     model->refreshAll();
 
-    QAbstractItemModelTester tester{model.get(), QAbstractItemModelTester::FailureReportingMode::Warning};
+    QAbstractItemModelTester tester{model.get(),
+                                    QAbstractItemModelTester::FailureReportingMode::Warning};
     QVERIFY(true);
 }
 
@@ -112,6 +117,53 @@ void TreeModelTest::childRowsAppearAfterLoad() {
 
     const QModelIndex rootIndexAfter = model->index(0, 0, QModelIndex{});
     QCOMPARE(model->rowCount(rootIndexAfter), 1);
+}
+
+void TreeModelTest::notEditableWithoutCallback() {
+    cache_->loadFromDatabase(rootId());
+    auto model = makeModel();
+
+    const QModelIndex rootIndex = model->index(0, 0, QModelIndex{});
+    QVERIFY(!(model->flags(rootIndex) & Qt::ItemIsEditable));
+}
+
+void TreeModelTest::editableWithCallback() {
+    cache_->loadFromDatabase(rootId());
+    auto model = makeModel();
+    model->setEditCallback([this](NodeId id, std::string value) {
+        return cache_->editPayload(id, value) == CacheService::OperationResult::Success;
+    });
+
+    const QModelIndex rootIndex = model->index(0, 0, QModelIndex{});
+    QVERIFY(model->flags(rootIndex) & Qt::ItemIsEditable);
+}
+
+void TreeModelTest::deletedNodeNotEditable() {
+    cache_->loadFromDatabase(rootId());
+    cache_->remove(rootId());
+    auto model = makeModel();
+    model->setEditCallback([](NodeId, std::string) { return true; });
+
+    const QModelIndex rootIndex = model->index(0, 0, QModelIndex{});
+    QVERIFY(!(model->flags(rootIndex) & Qt::ItemIsEditable));
+}
+
+void TreeModelTest::setDataInvokesCallback() {
+    cache_->loadFromDatabase(rootId());
+    auto model = makeModel();
+
+    bool called = false;
+    model->setEditCallback([&](NodeId id, std::string value) {
+        called = true;
+        return cache_->editPayload(id, value) == CacheService::OperationResult::Success;
+    });
+
+    const QModelIndex rootIndex = model->index(0, 0, QModelIndex{});
+    const bool ok = model->setData(rootIndex, QString::fromUtf8("Новое"), Qt::EditRole);
+
+    QVERIFY(ok);
+    QVERIFY(called);
+    QCOMPARE(cache_->findNode(rootId())->payload(), std::string{"Новое"});
 }
 
 QTEST_MAIN(TreeModelTest)

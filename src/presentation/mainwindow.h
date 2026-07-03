@@ -39,6 +39,9 @@ private slots:
     void onApplyToDatabase();
     void onReset();
 
+    void onDatabaseContextMenu(const QPoint& pos);
+    void onCacheContextMenu(const QPoint& pos);
+
 private:
     void buildUi();
     void connectActions();
