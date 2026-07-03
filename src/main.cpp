@@ -1,13 +1,20 @@
+#include "application/CacheService.h"
+#include "infrastructure/DatabaseRepository.h"
+#include "infrastructure/InMemoryDatabase.h"
+#include "presentation/mainwindow.h"
+
 #include <QApplication>
-#include <QLabel>
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
-    QLabel placeholder(QStringLiteral("micran-tree-cache"));
-    placeholder.setMinimumSize(400, 100);
-    placeholder.setAlignment(Qt::AlignCenter);
-    placeholder.show();
+    micran_tree_cache::infrastructure::InMemoryDatabase database;
+    micran_tree_cache::infrastructure::DatabaseRepository repository{database};
+
+    micran_tree_cache::application::CacheService cache{repository};
+
+    micran_tree_cache::presentation::MainWindow window{cache, repository};
+    window.show();
 
     return app.exec();
 }
