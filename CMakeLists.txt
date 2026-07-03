@@ -69,6 +69,20 @@ target_link_libraries(infrastructure
     PRIVATE project_warnings
 )
 
+add_library(application STATIC
+    src/application/CacheService.cpp
+    src/application/CacheService.h
+)
+
+target_include_directories(application PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(application
+    PUBLIC domain
+    PRIVATE project_warnings
+)
+
 set(PROJECT_SOURCES
     src/main.cpp
     src/presentation/mainwindow.cpp
