@@ -10,7 +10,7 @@
 namespace micran_tree_cache::domain {
 struct NodeSnapshot {
     NodeId id{invalidNodeId};
-    std::optional<NodeId> paraentId;
+    std::optional<NodeId> parentId;
     std::string payload;
     bool deleted{false};
     bool hasChildren{false};
@@ -31,6 +31,15 @@ struct ChangeSet {
     std::vector<NewNodeChange> created;
     std::vector<ModifiedNodeChange> modified;
     std::vector<NodeId> deleted;
+};
+
+struct IdAssigment {
+    NodeId temporaryId{invalidNodeId};
+    NodeId persistentId{invalidNodeId};
+};
+
+struct ApplyResult {
+    std::vector<IdAssigment> assignedIds;
 };
 
 } // namespace micran_tree_cache::domain
