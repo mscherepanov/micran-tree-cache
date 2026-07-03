@@ -1,22 +1,72 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MICRAN_TREE_CACHE_PRESENTATION_MAIN_WINDOW_H
+#define MICRAN_TREE_CACHE_PRESENTATION_MAIN_WINDOW_H
+
+#include "domain/NodeId.h"
 
 #include <QMainWindow>
+#include <optional>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
+class QTreeView;
+class QPushButton;
+class QLabel;
+
+namespace micran_tree_cache::application {
+class CacheService;
 }
-QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow {
+namespace micran_tree_cache::domain {
+class IDatabaseRepository;
+}
+
+namespace micran_tree_cache::presentation {
+
+class TreeModel;
+class DatabaseTreeProvider;
+
+class MainWindow final : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
+    MainWindow(application::CacheService& cache, domain::IDatabaseRepository& repository,
+               QWidget* parent = nullptr);
     ~MainWindow() override;
 
+private slots:
+    void onLoadToCache();
+    void onAddChild();
+    void onEditPayload();
+    void onRemove();
+    void onApplyToDatabase();
+    void onReset();
+
 private:
-    Ui::MainWindow* ui;
+    void buildUi();
+    void connectActions();
+
+    [[nodiscard]] std::optional<domain::NodeId> selectedId(const QTreeView* view) const;
+
+    void updateActionStates();
+    void refreshViews();
+    void showStatus(const QString& message);
+
+    application::CacheService& cache_;
+    domain::IDatabaseRepository& repository_;
+
+    QTreeView* databaseView_{nullptr};
+    QTreeView* cacheView_{nullptr};
+
+    TreeModel* databaseModel_{nullptr};
+    TreeModel* cacheModel_{nullptr};
+    DatabaseTreeProvider* databaseProvider_{nullptr};
+
+    QPushButton* loadButton_{nullptr};
+    QPushButton* addButton_{nullptr};
+    QPushButton* editButton_{nullptr};
+    QPushButton* removeButton_{nullptr};
+    QPushButton* applyButton_{nullptr};
+    QPushButton* resetButton_{nullptr};
 };
-#endif // MAINWINDOW_H
+
+} // namespace micran_tree_cache::presentation
+
+#endif // MICRAN_TREE_CACHE_PRESENTATION_MAIN_WINDOW_H

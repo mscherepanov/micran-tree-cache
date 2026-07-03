@@ -88,8 +88,13 @@ add_library(presentation STATIC
     src/presentation/TreeModel.h
     src/presentation/CacheTreeProvider.cpp
     src/presentation/CacheTreeProvider.h
+    src/presentation/DatabaseTreeProvider.cpp
+    src/presentation/DatabaseTreeProvider.h
     src/presentation/NodeItemDelegate.cpp
     src/presentation/NodeItemDelegate.h
+    src/presentation/mainwindow.cpp
+    src/presentation/mainwindow.h
+    src/presentation/mainwindow.ui
     src/presentation/ITreeDataProvider.h
 )
 
@@ -104,9 +109,6 @@ target_link_libraries(presentation
 
 set(PROJECT_SOURCES
     src/main.cpp
-    src/presentation/mainwindow.cpp
-    src/presentation/mainwindow.h
-    src/presentation/mainwindow.ui
 )
 
 if(QT_VERSION_MAJOR GREATER_EQUAL 6)
@@ -120,6 +122,9 @@ target_include_directories(micran-tree-cache PRIVATE
 )
 
 target_link_libraries(micran-tree-cache PRIVATE
+    presentation
+    application
+    infrastructure
     domain
     Qt${QT_VERSION_MAJOR}::Widgets
     project_warnings
