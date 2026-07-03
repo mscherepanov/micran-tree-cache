@@ -16,7 +16,7 @@ public:
     [[nodiscard]] virtual std::vector<NodeSnapshot> loadRoots() = 0;
     [[nodiscard]] virtual std::vector<NodeSnapshot> loadChildren(NodeId parentId) = 0;
 
-    virtual void applyChanges(const ChangeSet& changes) = 0;
+    virtual ApplyResult applyChanges(const ChangeSet& changes) = 0;
 
 protected:
     IDatabaseRepository() = default;
