@@ -25,10 +25,12 @@ public:
     [[nodiscard]] const std::string& payload() const noexcept { return payload_; }
     [[nodiscard]] NodeStatus status() const noexcept { return status_; }
     [[nodiscard]] TreeNode* parent() const noexcept { return parent_; }
+
     [[nodiscard]] bool hasUnloadedChildren() const noexcept { return hasUnloadedChildren_; }
     [[nodiscard]] const std::vector<std::unique_ptr<TreeNode>>& children() const noexcept {
         return children_;
     }
+
     [[nodiscard]] bool isDeleted() const noexcept { return status_ == NodeStatus::Deleted; }
     [[nodiscard]] bool isEditable() const noexcept { return !isDeleted(); }
 
@@ -37,8 +39,10 @@ public:
     bool setPayload(std::string payload);
 
     void markDeletedRecursively();
+
     void setHasUnloadedChildren(bool value) noexcept { hasUnloadedChildren_ = value; }
     void setStatus(NodeStatus status) noexcept { status_ = status; }
+    void setId(NodeId id) noexcept { id_ = id; }
 
 private:
     NodeId id_;

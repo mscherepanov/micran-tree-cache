@@ -148,4 +148,18 @@ NodeId CacheService::nextTemporaryId() noexcept {
     return NodeId{nextTemporaryId_++};
 }
 
+bool CacheService::reassignId(NodeId temporaryId, NodeId persistentId) {
+    const auto it = index_.find(temporaryId);
+    if (it == index_.end()) {
+        return false;
+    }
+
+    TreeNode* node = it->second;
+    node->setId(persistentId);
+
+    index_.erase(it);
+    index_.emplace(persistentId, node);
+    return true;
+}
+
 } // namespace micran_tree_cache::application
