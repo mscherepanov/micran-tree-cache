@@ -2,6 +2,7 @@
 #define MICRAN_TREE_CACHE_INFRASTRUCTURE_IN_MEMORY_DATABASE_H
 
 #include "domain/DatabaseTypes.h"
+#include "domain/IDatabaseResetter.h"
 #include "domain/NodeId.h"
 
 #include <cstdint>
@@ -11,7 +12,7 @@
 #include <vector>
 
 namespace micran_tree_cache::infrastructure {
-class InMemoryDatabase {
+class InMemoryDatabase : public domain::IDatabaseResetter {
 public:
     InMemoryDatabase();
 
@@ -22,6 +23,7 @@ public:
     domain::ApplyResult applyChanges(const domain::ChangeSet& changes);
 
     void reset();
+    void resetToInitialState() override { reset(); }
 
 private:
     struct Record {

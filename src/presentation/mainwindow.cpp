@@ -1,8 +1,10 @@
 #include "presentation/mainwindow.h"
 
 #include "application/CacheService.h"
+#include "application/ResetService.h"
 #include "application/SyncService.h"
 #include "domain/IDatabaseRepository.h"
+#include "domain/IDatabaseResetter.h"
 #include "presentation/CacheTreeProvider.h"
 #include "presentation/DatabaseTreeProvider.h"
 #include "presentation/NodeItemDelegate.h"
@@ -27,6 +29,7 @@
 namespace micran_tree_cache::presentation {
 
 using application::CacheService;
+using application::ResetService;
 using application::SyncService;
 using domain::NodeId;
 
@@ -49,8 +52,8 @@ QString describeResult(CacheService::OperationResult result) {
 } // namespace
 
 MainWindow::MainWindow(CacheService& cache, domain::IDatabaseRepository& repository,
-                       QWidget* parent)
-    : QMainWindow{parent}, cache_{cache}, repository_{repository} {
+                       domain::IDatabaseResetter& resetter, QWidget* parent)
+    : QMainWindow{parent}, cache_{cache}, repository_{repository}, resetter_{resetter} {
     buildUi();
     connectActions();
     refreshViews();
@@ -283,7 +286,9 @@ void MainWindow::onReset() {
         return;
     }
 
-    cache_.clear();
+    ResetService reset{cache_, resetter_};
+    reset.reset();
+
     databaseProvider_->rebuild();
     refreshViews();
     updateActionStates();

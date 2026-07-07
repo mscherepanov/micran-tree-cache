@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 
     micran_tree_cache::application::CacheService cache{repository};
 
-    micran_tree_cache::presentation::MainWindow window{cache, repository};
+    micran_tree_cache::presentation::MainWindow window{cache, repository, database};
     window.show();
 
     return app.exec();
