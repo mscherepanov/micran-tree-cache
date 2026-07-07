@@ -1,6 +1,7 @@
 #include "presentation/mainwindow.h"
 
 #include "application/CacheService.h"
+#include "application/SyncService.h"
 #include "domain/IDatabaseRepository.h"
 #include "presentation/CacheTreeProvider.h"
 #include "presentation/DatabaseTreeProvider.h"
@@ -26,6 +27,7 @@
 namespace micran_tree_cache::presentation {
 
 using application::CacheService;
+using application::SyncService;
 using domain::NodeId;
 
 namespace {
@@ -255,7 +257,22 @@ void MainWindow::onRemove() {
 }
 
 void MainWindow::onApplyToDatabase() {
-    showStatus(tr("Синхронизация будет доступна на следующем этапе"));
+    if (cache_.isEmpty()) {
+        showStatus(tr("Кэш пуст — нечего сохранять"));
+        return;
+    }
+
+    SyncService sync{cache_, repository_};
+    const SyncService::Result result = sync.apply();
+
+    databaseProvider_->rebuild();
+    refreshViews();
+    updateActionStates();
+
+    showStatus(tr("Сохранено в БД: создано %1, изменено %2, удалено %3")
+                   .arg(result.created)
+                   .arg(result.modified)
+                   .arg(result.deleted));
 }
 
 void MainWindow::onReset() {

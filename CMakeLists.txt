@@ -72,6 +72,8 @@ target_link_libraries(infrastructure
 add_library(application STATIC
     src/application/CacheService.cpp
     src/application/CacheService.h
+    src/application/SyncService.cpp
+    src/application/SyncService.h
 )
 
 target_include_directories(application PUBLIC

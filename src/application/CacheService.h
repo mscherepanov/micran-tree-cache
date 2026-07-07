@@ -34,13 +34,18 @@ public:
     [[nodiscard]] const std::vector<std::unique_ptr<domain::TreeNode>>& roots() const noexcept {
         return roots_;
     }
+
     [[nodiscard]] domain::TreeNode* findNode(domain::NodeId id) const;
+
+    bool reassignId(domain::NodeId temporaryId, domain::NodeId persistentId);
+
     [[nodiscard]] bool isEmpty() const noexcept { return roots_.empty(); }
 
 private:
     domain::TreeNode* insertLoadedNode(const domain::NodeSnapshot& snapshot);
 
     void adoptOrphans(domain::TreeNode* node);
+
     void refreshUnloadedFlag(domain::TreeNode* node);
 
     std::unique_ptr<domain::TreeNode> detachRoot(domain::NodeId id);
