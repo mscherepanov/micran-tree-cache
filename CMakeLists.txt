@@ -43,6 +43,7 @@ add_library(domain STATIC
     src/domain/NodeStatus.h
     src/domain/DatabaseTypes.h
     src/domain/IDatabaseRepository.h
+    src/domain/IDatabaseResetter.h
 )
 
 target_include_directories(domain PUBLIC
@@ -74,6 +75,8 @@ add_library(application STATIC
     src/application/CacheService.h
     src/application/SyncService.cpp
     src/application/SyncService.h
+    src/application/ResetService.cpp
+    src/application/ResetService.h
 )
 
 target_include_directories(application PUBLIC

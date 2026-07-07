@@ -16,7 +16,8 @@ class CacheService;
 
 namespace micran_tree_cache::domain {
 class IDatabaseRepository;
-}
+class IDatabaseResetter;
+} // namespace micran_tree_cache::domain
 
 namespace micran_tree_cache::presentation {
 
@@ -28,7 +29,7 @@ class MainWindow final : public QMainWindow {
 
 public:
     MainWindow(application::CacheService& cache, domain::IDatabaseRepository& repository,
-               QWidget* parent = nullptr);
+               domain::IDatabaseResetter& resetter, QWidget* parent = nullptr);
     ~MainWindow() override;
 
 private slots:
@@ -54,6 +55,7 @@ private:
 
     application::CacheService& cache_;
     domain::IDatabaseRepository& repository_;
+    domain::IDatabaseResetter& resetter_;
 
     QTreeView* databaseView_{nullptr};
     QTreeView* cacheView_{nullptr};
