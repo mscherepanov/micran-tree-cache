@@ -1,7 +1,7 @@
 #include "application/CacheService.h"
 #include "infrastructure/DatabaseRepository.h"
 #include "infrastructure/InMemoryDatabase.h"
-#include "presentation/mainwindow.h"
+#include "presentation/MainWindow.h"
 
 #include <QApplication>
 

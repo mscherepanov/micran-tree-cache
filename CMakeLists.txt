@@ -33,7 +33,7 @@ target_compile_options(project_warnings INTERFACE
     -Wconversion
 )
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 include(ClangTools)
 
 add_library(domain STATIC
@@ -97,9 +97,8 @@ add_library(presentation STATIC
     src/presentation/DatabaseTreeProvider.h
     src/presentation/NodeItemDelegate.cpp
     src/presentation/NodeItemDelegate.h
-    src/presentation/mainwindow.cpp
-    src/presentation/mainwindow.h
-    src/presentation/mainwindow.ui
+    src/presentation/MainWindow.cpp
+    src/presentation/MainWindow.h
     src/presentation/ITreeDataProvider.h
 )
 

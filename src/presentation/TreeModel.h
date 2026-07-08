@@ -16,11 +16,7 @@ class TreeModel final : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    enum Roles {
-        StatusRole = Qt::UserRole + 1,
-        HasUnloadedChildrenRole,
-        NodeIdRole
-    };
+    enum Roles { StatusRole = Qt::UserRole + 1, HasUnloadedChildrenRole, NodeIdRole };
 
     using EditCallback = std::function<bool(domain::NodeId, std::string)>;
 
