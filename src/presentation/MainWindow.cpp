@@ -1,4 +1,4 @@
-#include "presentation/mainwindow.h"
+#include "presentation/MainWindow.h"
 
 #include "application/CacheService.h"
 #include "application/ResetService.h"

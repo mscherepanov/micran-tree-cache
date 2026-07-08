@@ -1,5 +1,6 @@
 #include "infrastructure/InMemoryDatabase.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace micran_tree_cache::infrastructure {
@@ -92,12 +93,8 @@ NodeSnapshot InMemoryDatabase::makeSnapshot(NodeId id, const Record& record) con
 }
 
 bool InMemoryDatabase::hasChildren(NodeId id) const {
-    for (const auto& [childId, record] : records_) {
-        if (record.parentId == id) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(records_,
+                               [id](const auto& entry) { return entry.second.parentId == id; });
 }
 
 void InMemoryDatabase::markDeletedRecursively(NodeId id) {

@@ -26,7 +26,8 @@ public:
     Result apply();
 
 private:
-    void collectChanges(const domain::TreeNode* node, domain::ChangeSet& changes, Result& summary) const;
+    void collectChanges(const domain::TreeNode* node, domain::ChangeSet& changes,
+                        Result& summary) const;
     void reconcileCache(const domain::ApplyResult& applyResult);
     void markSubtreeSynced(domain::TreeNode* node);
 
@@ -34,6 +35,6 @@ private:
     domain::IDatabaseRepository& repository_;
 };
 
-} // namespacee micran_tree_cache::application
+} // namespace micran_tree_cache::application
 
 #endif // MICRAN_TREE_CACHE_APPLICATION_SYNC_SERVICE_H

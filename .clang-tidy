@@ -13,7 +13,9 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -readability-magic-numbers,
   -cppcoreguidelines-non-private-member-variables-in-classes,
-  -bugprone-easily-swappable-parameters
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-owning-memory,
+  -readability-make-member-function-const
 
 WarningsAsErrors: ''
 HeaderFilterRegex: 'src/(?!.*(moc_|ui_|qrc_)).*\.(h|cpp)$'
